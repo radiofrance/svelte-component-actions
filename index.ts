@@ -1,82 +1,44 @@
-// heavily inspired from https://github.com/hperrin/svelte-material-ui/blob/master/packages/common/src/internal/useActions.ts
+// inspired by https://github.com/hperrin/svelte-material-ui/blob/master/packages/common/src/internal/useActions.ts
 
-export type SvelteActionReturnType<P> = {
-  update?: (newParams?: P) => void;
-  destroy?: () => void;
-} | void;
+export type SvelteActionReturnType<P> = Partial<{
+  update: (newParams?: P) => void;
+  destroy: () => void;
+}>;
 
-export type SvelteHTMLActionType<P> = (
-  node: HTMLElement,
+export type SvelteActionType<P> = (
+  node: Element,
   params?: P
 ) => SvelteActionReturnType<P>;
 
-export type HTMLActionEntry<P extends any = any> =
-  | SvelteHTMLActionType<P>
-  | [SvelteHTMLActionType<P>, P];
+export type ActionEntry<P extends any = any> =
+  | SvelteActionType<P>
+  | [SvelteActionType<P>, P];
 
-export type HTMLActionArray = HTMLActionEntry[];
+export type ActionArray = ActionEntry[];
 
-export type SvelteSVGActionType<P> = (
-  node: SVGElement,
-  params?: P
-) => SvelteActionReturnType<P>;
+export function useActions(node: Element, actions: ActionArray) {
+  if (!actions) return;
 
-export type SVGActionEntry<P extends any = any> =
-  | SvelteSVGActionType<P>
-  | [SvelteSVGActionType<P>, P];
-
-export type SVGActionArray = SVGActionEntry[];
-
-export type ActionArray = HTMLActionArray | SVGActionArray;
-
-export function useActions(
-  node: HTMLElement | SVGElement,
-  actions: ActionArray
-) {
-  const actionReturns: SvelteActionReturnType<any>[] = [];
-
-  if (actions) {
-    for (let i = 0; i < actions.length; i++) {
-      const actionEntry = actions[i];
-      const action = Array.isArray(actionEntry) ? actionEntry[0] : actionEntry;
-      if (Array.isArray(actionEntry) && actionEntry.length > 1) {
-        actionReturns.push(
-          action(node as HTMLElement & SVGElement, actionEntry[1])
-        );
-      } else {
-        actionReturns.push(action(node as HTMLElement & SVGElement));
-      }
-    }
-  }
+  const actionReturns: SvelteActionReturnType<any>[] = actions.map((actionEntry) => {
+    const [action, params] = Array.isArray(actionEntry) ? actionEntry : [actionEntry];
+    return action(node, params);
+  });
 
   return {
-    update(actions: ActionArray) {
-      if (((actions && actions.length) || 0) != actionReturns.length) {
+    update(newActions: ActionArray) {
+      if (!newActions || newActions.length !== actionReturns.length) {
         throw new Error('You must not change the length of an actions array.');
       }
-
-      if (actions) {
-        for (let i = 0; i < actions.length; i++) {
-          const returnEntry = actionReturns[i];
-          if (returnEntry && returnEntry.update) {
-            const actionEntry = actions[i];
-            if (Array.isArray(actionEntry) && actionEntry.length > 1) {
-              returnEntry.update(actionEntry[1]);
-            } else {
-              returnEntry.update();
-            }
-          }
-        }
-      }
-    },
-
-    destroy() {
-      for (let i = 0; i < actionReturns.length; i++) {
+      newActions.forEach((actionEntry, i) => {
         const returnEntry = actionReturns[i];
-        if (returnEntry && returnEntry.destroy) {
-          returnEntry.destroy();
-        }
-      }
+        const [, params] = Array.isArray(actionEntry) ? actionEntry : [actionEntry];
+        returnEntry.update?.(params);
+      });
+    },
+    destroy() {
+      actionReturns.forEach((returnEntry) => {
+        returnEntry.destroy?.();
+      });
     },
   };
 }
