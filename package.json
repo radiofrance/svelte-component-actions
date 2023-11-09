@@ -2,8 +2,9 @@
   "name": "svelte-component-actions",
   "version": "0.0.1",
   "description": "A svelte action to facilitate the use of actions and action parameters on components.",
+  "main": "dist/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "rm -rf dist && tsc"
   },
   "keywords": ["svelte", "component", "actions", "action", "parameters", "parameter"],
   "author": "@romaindurand",
