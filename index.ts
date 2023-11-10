@@ -1,27 +1,38 @@
-// inspired by https://github.com/hperrin/svelte-material-ui/blob/master/packages/common/src/internal/useActions.ts
+export type SvelteActionReturnType<P> = {
+  update?: (newParams?: P) => void;
+  destroy?: () => void;
+} | void;
 
-export type SvelteActionReturnType<P> = Partial<{
-  update: (newParams?: P) => void;
-  destroy: () => void;
-}>;
-
-export type SvelteActionType<P> = (
-  node: Element,
+export type SvelteHTMLActionType<P> = (
+  node: HTMLElement,
   params?: P
 ) => SvelteActionReturnType<P>;
 
-export type ActionEntry<P extends any = any> =
-  | SvelteActionType<P>
-  | [SvelteActionType<P>, P];
+export type HTMLActionEntry<P extends any = any> =
+  | SvelteHTMLActionType<P>
+  | [SvelteHTMLActionType<P>, P];
 
-export type ActionArray = ActionEntry[];
+export type HTMLActionArray = HTMLActionEntry[];
 
-export function useActions(node: Element, actions: ActionArray) {
+export type SvelteSVGActionType<P> = (
+  node: SVGElement,
+  params?: P
+) => SvelteActionReturnType<P>;
+
+export type SVGActionEntry<P extends any = any> =
+  | SvelteSVGActionType<P>
+  | [SvelteSVGActionType<P>, P];
+
+export type SVGActionArray = SVGActionEntry[];
+
+export type ActionArray = HTMLActionArray | SVGActionArray;
+
+export function useActions(node: HTMLElement | SVGElement, actions: ActionArray) {
   if (!actions) return;
 
   const actionReturns: SvelteActionReturnType<any>[] = actions.map((actionEntry) => {
     const [action, params] = Array.isArray(actionEntry) ? actionEntry : [actionEntry];
-    return action(node, params);
+    return action(node as HTMLElement & SVGElement, params);
   });
 
   return {
@@ -32,12 +43,12 @@ export function useActions(node: Element, actions: ActionArray) {
       newActions.forEach((actionEntry, i) => {
         const returnEntry = actionReturns[i];
         const [, params] = Array.isArray(actionEntry) ? actionEntry : [actionEntry];
-        returnEntry.update?.(params);
+        returnEntry?.update?.(params);
       });
     },
     destroy() {
       actionReturns.forEach((returnEntry) => {
-        returnEntry.destroy?.();
+        returnEntry?.destroy?.();
       });
     },
   };
