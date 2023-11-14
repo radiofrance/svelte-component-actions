@@ -9,9 +9,14 @@ npm install svelte-component-actions
 
 ## Usage
 
+In the component you want to pass actions to :
+
+- Expose a `use` props
+- Import `useActions` from `svelte-component-actions` and add the `use` directive to the desired element as follows : `use:useActions={use}`
+
 ```html
 <!-- MyComponent.svelte -->
-<script>
+<script lang="ts">
   import { useActions, type ActionArray } from "svelte-component-actions";
 
   export let use: ActionArray = [];
@@ -21,6 +26,9 @@ npm install svelte-component-actions
   Hello from MyComponent !
 </div>
 ```
+
+When using your component, give the `use` prop an array. Each array element can either be an action, or an array containing an action followed by its parameters.
+
 
 ```html
 <!-- MyPage.svelte -->
@@ -33,3 +41,5 @@ npm install svelte-component-actions
   use={[ myAction, [ myActionWithParams, { myParam1: "foo", myParam2: "bar" }]]}
 />
 ```
+
+> ⚠️ **When updating action parameters, do not change the actions array length**
