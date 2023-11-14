@@ -1,6 +1,6 @@
 {
   "name": "svelte-component-actions",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "A svelte action to facilitate the use of actions and action parameters on components.",
   "repository": "radiofrance/svelte-component-actions",
   "main": "dist/index.js",
